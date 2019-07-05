@@ -1,0 +1,31 @@
+
+import pandas as pd
+import requests as r
+import time 
+lt=time.localtime(time.time())
+
+url='https://ptax.bcb.gov.br/ptax_internet/consultaBoletimIngles.do?method=consultarBoletim'
+fdata={
+       'RadOpcao': '1',
+'DATAINI': '01/26/2019',
+'DATAFIM': time.strftime('%m/%d/%Y',lt),
+'ChkMoeda': '61',
+       }
+
+res=r.post(url,data=fdata)
+html=res.text
+data=pd.read_html(html)[0]
+def get(data):
+    date=data.iloc[len(data)-2,0].split('/')
+    ex=float(data.iloc[len(data)-2,2])
+    ys=float(data.iloc[len(data)-3,2])
+    rang=ex-ys
+    if rang>0:
+        ms='贬值'
+    elif rang<0:
+        ms='升值'
+    else:
+        ms='持平'
+    return '%s%s%s'%(date[2],date[0],date[1]),ms,ex,ms,round(abs(rang*10000))
+str1='【巴西雷亚尔】%s巴西雷亚尔%s。1美元兑%s雷亚尔，较前一交易日对美元%s%s个基点。'%get(data)
+print(str1)
